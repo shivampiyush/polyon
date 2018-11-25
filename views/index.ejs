@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Polygon</title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <!--to load next page to check area -->
+  <form name="myform" action="/data" method="POST">
+    <div id="float">
+       <button type="submit" value="submit " name="formvar">Submit</button> 
+
+    </div>
+  </form>
+  <!--to clear area -->
+  <form name="formreset" action="" method="GET">
+    <div id="floatclear">
+      <button id="delete-all-button" name="resetvar" onclick="reset()">Clear</button> 
+    </div>
+  </form>
+
+  <div id="info"></div>
+  <div id="map"></div>
+
+  <script>
+    var polygonArray = [];
+    var all_overlays = [];
+
+    //to delete the polygon
+    function deleteAllShape() {
+      for (var i = 0; i < all_overlays.length; i++) {
+        all_overlays[i].overlay.setMap(null);
+      }
+      all_overlays = [];
+    }
+
+    //load map with centre and zoom
+    function initMap() {
+      var map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 18.9219841, lng: 72.8346543 },
+        zoom: 16
+      });
+
+      // to set drawing mode
+      var _polygon = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.POLYGON,
+        drawingControl: false,
+      });
+      _polygon.setMap(map);
+
+      ///get all the coordinates
+      google.maps.event.addListener(_polygon, 'polygoncomplete', function (polygon) {
+        document.getElementById('info').innerHTML += "Polygon Points:" + "<br>";
+        for (var i = 0; i < polygon.getPath().getLength(); i++) {
+          document.getElementById('info').innerHTML += polygon.getPath().getAt(i).toUrlValue(3) + "<br>";
+        }
+        polygonArray.push(polygon);
+        var coordinates = document.getElementById('info').innerHTML;
+        document.myform.formvar.value = coordinates;
+      });
+
+      //to store and delete the polygon
+      google.maps.event.addListener(_polygon, 'overlaycomplete', function (all_shapes) {
+        all_overlays.push(all_shapes);
+        if (all_shapes.type != google.maps.drawing.OverlayType.POLYGON) {
+          drawingManager.setDrawingMode(null);
+          var newShape = all_shapes.overlay;
+          newShape.type = all_shapes.type;
+          google.maps.event.addListener(newShape, 'click', function () {
+            setSelection(newShape);
+          });
+          setSelection(newShape);
+        }
+      });
+      google.maps.event.addDomListener(document.getElementById('delete-all-button'), 'click', deleteAllShape);
+    }
+    var remove = [];
+    //delete the cooordinates
+    function reset() {
+      remove = document.getElementById('info').innerHTML;
+      var removeData = remove.replace(remove, "");
+      document.formreset.resetvar.value = removeData;
+    }
+  </script>
+
+  <!--load google map-->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCg6JOa1wvoY9wl5f3cuVw9ljauMVRT2XM&libraries=drawing&callback=initMap"
+    async defer></script>
+
+</body>
+
+</html>

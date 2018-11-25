@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Check Location</title>    
+  </head>
+
+  <body>
+    <div id="map"></div>
+    
+    <script>
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 18.9219841, lng: 72.8346543 },
+            zoom: 16
+        });
+
+        //setting the latitude and longitude
+        var latitude=[];
+        var longitude=[];
+        var finalCoordinates= "<%= finalCoordinates %>";
+        var split = finalCoordinates.split(",");
+        for (var i = 0; i < split.length; i++) {
+            latitude.push(split[i]);
+            longitude.push(split[i+1]);         
+            ++i;
+        }
+        var points=[];
+        for(var i=0; i<latitude.length; i++) { 
+          points.push(new google.maps.LatLng(latitude[i],longitude[i]));
+        }
+        //setting the path
+        var bermudaTriangle = new google.maps.Polygon({paths: points});
+
+        //if the selected area comes in polygon den a blue triangle will be displayed otherwise red circle
+        google.maps.event.addListener(map, 'click', function(e) {
+          var resultColor =
+              google.maps.geometry.poly.containsLocation(e.latLng, bermudaTriangle) ?
+              'blue' :
+              'red';
+
+          var resultPath =
+              google.maps.geometry.poly.containsLocation(e.latLng, bermudaTriangle) ?
+              // A triangle.
+              "m 0 -1 l 1 2 -2 0 z" :
+              google.maps.SymbolPath.CIRCLE;
+
+          new google.maps.Marker({
+            position: e.latLng,
+            map: map,
+            icon: {
+              path: resultPath,
+              fillColor: resultColor,
+              fillOpacity: .2,
+              strokeColor: 'white',
+              strokeWeight: .5,
+              scale: 20
+            }
+          });
+        });
+      } 
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCg6JOa1wvoY9wl5f3cuVw9ljauMVRT2XM&libraries=drawing&callback=initMap"
+    async defer></script>
+  </body>
+</html>
